@@ -25,7 +25,7 @@ class RawAudioDataset(data.Dataset):
         self.labels = labels
 
     def __len__(self):
-        return self.audio.size(0)
+        return len(self.audio)
 
     def __getitem__(self, idx):
         if self.labels is None:

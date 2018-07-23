@@ -64,7 +64,6 @@ def main():
     descriptor = ds.DatasetDescriptor(mean=all_audio.mean(-1), 
         mean2=(all_audio**2).mean(-1), length=all_audio.size(0))
 
-
     data_dict = dict(audio=audio_ds, descriptor=descriptor)
     if has_labels:
         data_dict["labels"] = label_ds
