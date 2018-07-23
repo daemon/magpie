@@ -36,18 +36,18 @@ class ContractiveAutoencoder(model.MagpieModel, prefix="cae"):
         def make_ortho_weight(input_size, output_size):
             return nn.init.orthogonal_(torch.empty(output_size, input_size))
 
-        self.enc_weight1 = nn.Parameter(make_ortho_weight(self.input_size, self.input_size * 2))
-        self.enc_weight2 = nn.Parameter(make_ortho_weight(self.input_size * 2, self.hidden_size))
-        self.enc_bias1 = nn.Parameter(torch.zeros(self.input_size * 2))
+        self.enc_weight1 = nn.Parameter(make_ortho_weight(self.input_size, self.input_size * 3))
+        self.enc_weight2 = nn.Parameter(make_ortho_weight(self.input_size * 3, self.hidden_size))
+        self.enc_bias1 = nn.Parameter(torch.zeros(self.input_size * 3))
         self.enc_bias2 = nn.Parameter(torch.zeros(self.hidden_size))
 
         if self.tied:
             self.dec_weight1 = self.enc_weight1
             self.dec_weight2 = self.enc_weight2
         else:
-            self.dec_weight1 = nn.Parameter(make_ortho_weight(self.input_size, self.input_size * 2))
-            self.dec_weight2 = nn.Parameter(make_ortho_weight(self.input_size * 2, self.hidden_size))
-        self.dec_bias1 = nn.Parameter(torch.zeros(self.input_size * 2))
+            self.dec_weight1 = nn.Parameter(make_ortho_weight(self.input_size, self.input_size * 3))
+            self.dec_weight2 = nn.Parameter(make_ortho_weight(self.input_size * 3, self.hidden_size))
+        self.dec_bias1 = nn.Parameter(torch.zeros(self.input_size * 3))
         self.dec_bias2 = nn.Parameter(torch.zeros(self.hidden_size))
 
     def compute_contractive_loss(self, x):
@@ -65,9 +65,30 @@ class ContractiveAutoencoder(model.MagpieModel, prefix="cae"):
 
     def decode(self, x):
         x = F.linear(x - self.dec_bias2, self.dec_weight2.t())
-        x = atanh(x)
+        x = F.tanh(x)
         x = F.linear(x - self.dec_bias1, self.dec_weight1.t())
         return x
 
     def forward(self, x):
         return self.decode(self.encode(x))
+
+
+class ContractiveAutoencoderTrainer(model.MagpieTrainer, name="cae-trainer"):
+
+    def __init__(self, config):
+        super().__init__(config)
+        self.loss_fn = nn.MSELoss()
+
+    def loss(self, stage, model, input_tuple):
+        x_in, x_out = input_tuple
+        if self.config["use_cuda"]:
+            x_in = x_in.cuda()
+            x_out = x_out.cuda()
+        x_recon = model(x_in)
+        loss = self.loss_fn(x_recon, x_out)
+        if stage == "train":
+            loss = self.config["cae_decay"] * model.compute_contractive_loss(x_in) + loss
+        return loss, x_recon
+
+    def print_stats(self, stage, step, input_tuple, outputs, loss):
+        print(f"{stage} #{step}: loss {loss:.5}")

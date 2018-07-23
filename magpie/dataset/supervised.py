@@ -1,24 +1,12 @@
-from collections import namedtuple
-import enum
 import gc
 
-import torch
-import torch.utils.data as data
+from . import dataset as ds
 
 
-class DatasetType(enum.Enum):
+class LabeledRawAudioDataset(ds.MagpieDataset, name="labeled-raw"):
 
-    TRAINING = enum.auto()
-    VALIDATION = enum.auto()
-    TEST = enum.auto()
-
-
-DatasetDescriptor = namedtuple("DatasetDescriptor", "length, mean, mean2")
-
-
-class RawAudioDataset(data.Dataset):
-
-    def __init__(self, config, set_type, descriptor, audio, labels=None):
+    def __init__(self, config, set_type, descriptor, audio, labels):
+        super().__init__()
         self.set_type = set_type
         self.audio = audio
         self.descriptor = descriptor
@@ -28,10 +16,7 @@ class RawAudioDataset(data.Dataset):
         return len(self.audio)
 
     def __getitem__(self, idx):
-        if self.labels is None:
-            return self.audio[idx]
-        else:
-            return self.audio[idx], self.labels[idx]
+        return self.audio[idx], self.labels[idx]
 
     def free(self):
         self.audio = None
@@ -40,7 +25,7 @@ class RawAudioDataset(data.Dataset):
 
     @classmethod
     def splits(cls, config, data_dict):
-        ds = data_dict["descriptor"]
+        descriptor = data_dict["descriptor"]
         audio = data_dict["audio"]
         labels = data_dict.get("labels")
 
@@ -48,7 +33,7 @@ class RawAudioDataset(data.Dataset):
         dev_pct = config["dev_pct"]
         test_pct = config["test_pct"]
         tot_pct = train_pct + dev_pct + test_pct
-        audio_len = audio.size(0)
+        audio_len = len(audio)
         train_idx = int(train_pct / tot_pct * audio_len)
         dev_idx = train_idx + int(dev_pct / tot_pct * audio_len)
 
@@ -57,12 +42,12 @@ class RawAudioDataset(data.Dataset):
         test_audio = audio[dev_idx:]
         audio_splits = (train_audio, dev_audio, test_audio)
 
-        train_labels = labels[:train_idx] if labels else None
-        dev_labels = labels[train_idx:dev_idx] if labels else None
-        test_labels = labels[dev_idx:] if labels else None
+        train_labels = labels[:train_idx]
+        dev_labels = labels[train_idx:dev_idx]
+        test_labels = labels[dev_idx:]
         label_splits = (train_labels, dev_labels, test_labels)
 
-        ds_types = (DatasetType.TRAINING, DatasetType.VALIDATION, DatasetType.TEST)
-        datasets = [cls(config, ds_type, ds, audio, labels=labels) for 
+        ds_types = (ds.DatasetType.TRAINING, ds.DatasetType.VALIDATION, ds.DatasetType.TEST)
+        datasets = [cls(config, ds_type, descriptor, audio, labels) for 
             audio, labels, ds_type in zip(audio_splits, label_splits, ds_type)]
         return datasets

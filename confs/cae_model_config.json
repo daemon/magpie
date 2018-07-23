@@ -1,0 +1,11 @@
+{
+    "_inherits_": ["unsupervised_dataset_config.json", "trainer_config.json"],
+    "input_size": 480,
+    "hidden_size": 40,
+    "dataset_type": "unlabeled-raw",
+    "model_type": "cae",
+    "cae_decay": 1E-4,
+    "weight_decay": 0,
+    "tied_weights": true,
+    "trainer_type": "cae-trainer"
+}

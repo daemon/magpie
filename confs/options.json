@@ -1,0 +1,27 @@
+[
+    {
+        "name": "restore",
+        "action": "store_true"
+    }, {
+        "name": "lr",
+        "type": "float",
+        "nargs": "+"
+    }, {
+        "name": "schedule",
+        "type": "int",
+        "nargs": "+"
+    }, {
+        "name": "input_size",
+        "type": "int"
+    }, {
+        "name": "hidden_size",
+        "type": "int"
+    }, {
+        "name": "epochs",
+        "type": "int"
+    }, {
+        "name": "no_cuda",
+        "dest": "use_cuda",
+        "action": "store_false"
+    }
+]

@@ -1,0 +1,7 @@
+{
+    "_inherits_": "global_config.json",
+    "chunk_length": 480,
+    "train_pct": 80,
+    "dev_pct": 5,
+    "test_pct": 15
+}
