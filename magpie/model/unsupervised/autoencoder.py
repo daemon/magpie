@@ -47,13 +47,13 @@ class ContractiveAutoencoder(model.MagpieModel, prefix="cae"):
         else:
             self.dec_weight1 = nn.Parameter(make_ortho_weight(self.input_size, self.input_size * 3))
             self.dec_weight2 = nn.Parameter(make_ortho_weight(self.input_size * 3, self.hidden_size))
-        self.dec_bias1 = nn.Parameter(torch.zeros(self.input_size * 3))
-        self.dec_bias2 = nn.Parameter(torch.zeros(self.hidden_size))
+        self.dec_bias1 = nn.Parameter(torch.zeros(self.input_size))
+        self.dec_bias2 = nn.Parameter(torch.zeros(self.input_size * 3))
 
     def compute_contractive_loss(self, x):
-        x = x.unsqueeze(1).expand(-1, self.enc_weight1.size(0), -1)
-        b = self.enc_bias1.unsqueeze(1).expand(-1, x.size(2))
-        J = self.enc_weight1 * (1 - F.tanh(self.enc_weight1 * x + b)**2)
+        x = (1 - F.tanh(F.linear(x, self.enc_weight1, bias=self.enc_bias1))**2)
+        x = x.unsqueeze(-1).expand(-1, -1, self.enc_weight1.size(1))
+        J = self.enc_weight1 * x
         frob_norm = J.view(x.size(0), -1).norm(dim=1, p=2).mean()
         return frob_norm
 
@@ -64,9 +64,9 @@ class ContractiveAutoencoder(model.MagpieModel, prefix="cae"):
         return x
 
     def decode(self, x):
-        x = F.linear(x - self.dec_bias2, self.dec_weight2.t())
+        x = F.linear(x, self.dec_weight2.t(), bias=self.dec_bias2)
         x = F.tanh(x)
-        x = F.linear(x - self.dec_bias1, self.dec_weight1.t())
+        x = F.linear(x, self.dec_weight1.t(), bias=self.dec_bias1)
         return x
 
     def forward(self, x):
