@@ -25,7 +25,7 @@ class MagpieTrainer(object):
         raise NotImplementedError
 
     def print_stats(self, stage, step, input_tuple, outputs, loss):
-        raise NotImplementedError
+        print(f"{stage} #{step}: loss {loss:.5}")
 
     def train(self):
         cfg = self.config

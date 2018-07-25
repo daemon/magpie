@@ -23,5 +23,11 @@
         "name": "no_cuda",
         "dest": "use_cuda",
         "action": "store_false"
+    }, {
+        "name": "weight_decay",
+        "type": "float"
+    }, {
+        "name": "cae_decay",
+        "type": "float"
     }
 ]

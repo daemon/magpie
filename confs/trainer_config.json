@@ -2,11 +2,11 @@
     "_inherits_": "global_config.json",
     "batch_size": 64,
     "dataset_file": "dataset.pt",
-    "epochs": 12,
+    "epochs": 16,
     "lr": [1E-1, 1E-2, 1E-3],
     "momentum": 0.9,
     "output_file": "model/best_model.pt",
     "restore": false,
-    "schedule": [6, 8],
+    "schedule": [10, 14],
     "weight_decay": 1E-4
 }

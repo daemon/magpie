@@ -14,5 +14,9 @@ class MagpieModel(nn.Module):
         registry[prefix] = cls
 
 
+def make_ortho_weight(input_size, output_size):
+    return nn.init.orthogonal_(torch.empty(output_size, input_size))
+
+
 def find_model(model_name):
     return registry[model_name.split(".")[0]]
