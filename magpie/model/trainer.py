@@ -29,7 +29,7 @@ class MagpieTrainer(object):
 
     def train(self):
         cfg = self.config
-        print(cfg)
+        print("Using config: ", cfg)
         ds_cls = ds.find_dataset(cfg["dataset_type"])
         data_dict = torch.load(cfg["dataset_file"])
         train_set, dev_set, test_set = ds_cls.splits(cfg, data_dict)

@@ -126,8 +126,6 @@ class AutoencoderTrainer(model.MagpieTrainer, name="ae-trainer"):
         if self.config["use_cuda"]:
             x_in = x_in.cuda()
             x_out = x_out.cuda()
-        # if stage == "training":
-        #     x_in += x_in.clone().normal_(0, 0.1)
         x_recon = model(x_in)
         loss = self.loss_fn(x_recon, x_out)
         return loss, x_recon
